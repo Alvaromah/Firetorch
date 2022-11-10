@@ -1,52 +1,74 @@
 import os
 import cv2
-import datetime
+import numpy as np
+import matplotlib.pyplot as plt
 
-import torch
+class Images():
 
-class Workspace():
-    ROOT = '_output'
+    @staticmethod
+    def load(*route, gray=False, size=None):
+        fn = os.path.join(*route)
+        if gray:
+            img = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
+            if img is None: raise Exception('File not found!')
+            img = np.expand_dims(img, axis=2)
+        else:
+            img = cv2.imread(fn)
+            if img is None: raise Exception('File not found!')
+        if size:
+            img = Images.resize(img, size)
+        return img
 
-    def __init__(self, category=None, root=ROOT, pattern='%m%d_%H%M%S'):
-        self.path = root
-        if category:
-            self.path = os.path.join(root, category)
-        if pattern:
-            self.key = datetime.datetime.now().strftime(pattern)
-            self.path = os.path.join(self.path, self.key)
+    @staticmethod
+    def rotate(img, angle):
+        image_center = tuple(np.array(img.shape[1::-1]) / 2)
+        rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+        return cv2.warpAffine(img, rot_mat, img.shape[1::-1], flags=cv2.INTER_LINEAR)
 
-    def write_file(self, txt, *route):
-        fn = os.path.join(self.path, *route)
-        os.makedirs(os.path.dirname(fn), exist_ok=True)
-        with open(fn, 'a', encoding='UTF-8') as fp:
-            fp.write(txt)
+    @staticmethod
+    def resize(img, size, padding=8, inter=cv2.INTER_AREA):
+        width, height = size
+        h, w = img.shape[:2]
+        fw, fh = 1, 1
+        if w > width: fw = width / w
+        if h > height: fh = height / h
+        f = min(fw, fh)
+        w = int(w * f)
+        h = int(h * f)
+        resized = cv2.resize(img, (w, h), interpolation=inter)
+        if len(resized.shape) == 2:
+            resized = np.expand_dims(resized, axis=2)
+        arr = resized
+        if padding:
+            pw = (w // padding) * padding
+            ph = (h // padding) * padding
+            if pw != w or ph != h:
+                cx, cy = (w - pw) // 2, (h - ph) // 2
+                arr = resized[cy:ph+cy, cx:pw+cx]
+        return arr
 
-    def save_image(self, src, *route, resize=None):
-        '''
-            Save image using cv2.
-            Supported config: (H, W), (H, W, 1), (H, W, 3)
-            Types: uint8, float32 0-255
-            Examples:
-                save_image(src, 'filename.png')
-                save_image(src, 'path', 'filename.png')
-        '''
-        fn = os.path.join(self.path, *route)
-        os.makedirs(os.path.dirname(fn), exist_ok=True)
-        if isinstance(type(src), type(torch.Tensor)):
-            src = src.detach().cpu().numpy()
-        if resize:
-            src = cv2.resize(src, (resize, resize))
-        cv2.imwrite(fn, src)
+    @staticmethod
+    def resize_square(img, size, inter=cv2.INTER_AREA):
+        width, height = size
+        h, w = img.shape[:2]
+        fw, fh = 1, 1
+        if w > width: fw = width / w
+        if h > height: fh = height / h
+        f = min(fw, fh)
+        w = int(w * f)
+        h = int(h * f)
+        resized = cv2.resize(img, (w, h), interpolation=inter)
+        if len(resized.shape) == 2:
+            resized = np.expand_dims(resized, axis=2)
+        arr = np.zeros((width, height, img.shape[2]), img.dtype)
+        cx, cy = (width - w) // 2, (height - h) // 2
+        arr[cy:h+cy, cx:w+cx] = resized
+        return arr
 
-    def ensure_path(self):
-        os.makedirs(self.path, exist_ok=True)
-
-    def create_dir(self, *route):
-        path = self.get_path(*route)
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-        return path
-
-    def get_path(self, *route):
-        return os.path.join(self.path, *route)
-
+    @staticmethod
+    def show(img, gray=False):
+        if gray:
+            plt.imshow(img, cmap='gray')
+        else:
+            plt.imshow(img)
+        plt.show()

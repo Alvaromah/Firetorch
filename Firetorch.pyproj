@@ -27,9 +27,15 @@
     <Compile Include="firetorch\common\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="firetorch\modules\metrics.py" />
+    <Compile Include="firetorch\modules\model.py" />
+    <Compile Include="firetorch\modules\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="firetorch\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="labs\10-labs.py" />
     <Compile Include="sample.py" />
     <Compile Include="setup.py">
       <SubType>Code</SubType>
@@ -38,6 +44,8 @@
   <ItemGroup>
     <Folder Include="firetorch\" />
     <Folder Include="firetorch\common\" />
+    <Folder Include="firetorch\modules\" />
+    <Folder Include="labs\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="pyproject.toml" />
