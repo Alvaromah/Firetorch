@@ -3,6 +3,8 @@ import numpy as np
 
 import torch
 
+from .metrics import MetricsLog
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Model():
@@ -21,8 +23,7 @@ class Model():
             progress.desc = 'train'
             for step, batch in enumerate(progress):
                 loss, dy, dz = self._optimize(batch)
-                log.update(loss, dy, dz)
-                progress.postfix = log.format()
+                progress.postfix = log.update(loss, dy, dz)
             if self.scheduler:
                 self.scheduler.step()
         return log

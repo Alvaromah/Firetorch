@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>d10dd88f-118a-4cb0-b845-2bf027d88345</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>sample.py</StartupFile>
+    <StartupFile>examples\cifar10.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="examples\cifar10.py" />
     <Compile Include="firetorch\common\helpers.py" />
     <Compile Include="firetorch\common\images.py" />
     <Compile Include="firetorch\common\workspace.py" />
@@ -46,6 +47,7 @@
     <Folder Include="firetorch\common\" />
     <Folder Include="firetorch\modules\" />
     <Folder Include="labs\" />
+    <Folder Include="examples\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="pyproject.toml" />
