@@ -16,7 +16,7 @@ class Model():
         self.scheduler = scheduler
         self.metrics = metrics
 
-    def train_epoch(self, datasource):
+    def train_epoch(self, datasource, max_steps=None):
         self.network.train()
         log = MetricsLog(self.criterion, self.metrics)
         with tqdm.tqdm(datasource) as progress:
@@ -24,11 +24,12 @@ class Model():
             for step, batch in enumerate(progress):
                 loss, dy, dz = self._optimize(batch)
                 progress.postfix = log.update(loss, dy, dz)
+                if step == max_steps: break
             if self.scheduler:
                 self.scheduler.step()
         return log
 
-    def valid_epoch(self, datasource):
+    def valid_epoch(self, datasource, max_steps=None):
         self.network.eval()
         log = MetricsLog(self.criterion, self.metrics)
         with tqdm.tqdm(datasource) as progress:
@@ -37,6 +38,8 @@ class Model():
                 for step, batch in enumerate(progress):
                     loss, dy, dz = self._validate(batch)
                     progress.postfix = log.update(loss, dy, dz)
+                    if step == max_steps: break
+        return log
 
     def predict(self, datasource, as_numpy=True):
         self.network.eval()
