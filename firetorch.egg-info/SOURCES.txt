@@ -1,3 +1,5 @@
+LICENSE
+README.md
 pyproject.toml
 setup.py
 firetorch/__init__.py
@@ -10,3 +12,6 @@ firetorch/common/__init__.py
 firetorch/common/helpers.py
 firetorch/common/images.py
 firetorch/common/workspace.py
+firetorch/modules/__init__.py
+firetorch/modules/metrics.py
+firetorch/modules/model.py

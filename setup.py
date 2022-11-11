@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='firetorch',
@@ -10,4 +10,5 @@ setup(
         'opencv-python',
         'opencv-python-headless',
     ],
+    packages=find_packages(exclude=("examples", "labs")),
 )
