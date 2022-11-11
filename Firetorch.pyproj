@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="examples\cifar10-wandb.py" />
     <Compile Include="examples\cifar10.py" />
     <Compile Include="firetorch\common\helpers.py" />
     <Compile Include="firetorch\common\images.py" />
@@ -36,6 +37,7 @@
     <Compile Include="firetorch\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="labs\20-Cifar10.py" />
     <Compile Include="labs\10-labs.py" />
     <Compile Include="sample.py" />
     <Compile Include="setup.py">

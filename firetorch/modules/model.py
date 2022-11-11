@@ -16,70 +16,77 @@ class Model():
         self.scheduler = scheduler
         self.metrics = metrics
 
-    def train_epoch(self, datasource, max_steps=None):
+    def train_epoch(self, datasource, max_steps=None, activation=None):
         self.network.train()
-        log = MetricsLog(self.criterion, self.metrics)
+        metric_log = MetricsLog(self.criterion, self.metrics)
         with tqdm.tqdm(datasource) as progress:
             progress.desc = 'train'
             for step, batch in enumerate(progress):
-                loss, dy, dz = self._optimize(batch)
-                progress.postfix = log.update(loss, dy, dz)
-                if step == max_steps: break
+                loss, dy, dz = self._optimize(batch, activation)
+                progress.postfix = metric_log.update(loss, dy, dz)
+                if step == max_steps:
+                    break
             if self.scheduler:
                 self.scheduler.step()
-        return log
+        return metric_log.logs
 
-    def valid_epoch(self, datasource, max_steps=None):
+    def valid_epoch(self, datasource, max_steps=None, activation=None):
         self.network.eval()
-        log = MetricsLog(self.criterion, self.metrics)
+        metric_log = MetricsLog(self.criterion, self.metrics)
         with tqdm.tqdm(datasource) as progress:
             progress.desc = 'valid'
             with torch.no_grad():
                 for step, batch in enumerate(progress):
-                    loss, dy, dz = self._validate(batch)
-                    progress.postfix = log.update(loss, dy, dz)
-                    if step == max_steps: break
-        return log
+                    loss, dy, dz = self._validate(batch, activation)
+                    progress.postfix = metric_log.update(loss, dy, dz)
+                    if step == max_steps:
+                        break
+        return metric_log.logs
 
-    def predict(self, datasource, as_numpy=True):
+    def predict(self, datasource, max_steps=None, activation=None):
         self.network.eval()
         with tqdm.tqdm(datasource) as progress:
             progress.desc = 'predict'
             with torch.no_grad():
-                preds = {}
+                preds = []
                 for step, batch in enumerate(progress):
-                    ids, dz = self._predict(batch)
-                    z = dz.detach()
-                    if as_numpy:
-                        z = z.cpu().numpy()
-                    for id, p in zip(ids, z):
-                        preds[id] = p
-                return preds
+                    dz = self._predict(batch, activation)
+                    z = dz.detach().cpu().numpy()
+                    preds.append(z)
+                    if step == max_steps:
+                        break
+                return np.concatenate(preds, axis=0)
 
-    def _optimize(self, batch):
+    def _optimize(self, batch, activation):
         self.optimizer.zero_grad()
         x, y = batch
         dx = self._device(x)
         dy = self._device(y)
         dz = self.network(dx)
+        if activation:
+            dz = activation(dz)
         loss = self.criterion(dz, dy)
         loss.backward()
         self.optimizer.step()
         return loss, dy, dz
 
-    def _validate(self, batch):
+    def _validate(self, batch, activation):
         x, y = batch
         dx = self._device(x)
         dy = self._device(y)
         dz = self.network(dx)
+        if activation:
+            dz = activation(dz)
         loss = self.criterion(dz, dy)
         return loss, dy, dz
 
-    def _predict(self, batch):
-        id, x = batch
+    def _predict(self, batch, activation):
+        x = batch[:1][0]
         dx = self._device(x)
-        dz = self.network.predict(dx)
-        return id, dz
+        dz = self.network(dx)
+        if activation:
+            dz = activation(dz)
+        return dz
 
     def _device(self, t):
         if isinstance(t, list):
@@ -94,4 +101,3 @@ class Model():
 
     def save(self, path):
         self.network.save(path)
-

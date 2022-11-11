@@ -47,6 +47,17 @@ class Accuracy(nn.Module):
         return dy == dz.max(axis=1)[1] / len(dz)
 
 '''
+    Wandb
+'''
+import os
+import wandb
+
+os.environ['WANDB_MODE'] = 'online'
+os.environ['WANDB_MODE'] = 'offline'
+
+wandb.login()
+
+'''
     Train
 '''
 import torch.optim as optim
@@ -66,6 +77,8 @@ optimizer = optim.Adam(network.parameters(), lr=LEARNING_RATE)
 
 model = Model(network, criterion, optimizer, metrics=[Accuracy()])
 
+wandb.init(project="Cifar10", entity="devprojects", config={"epochs": EPOCHS, "batch_size": BATCH_SIZE})
+
 for epoch in range(EPOCHS):
     print('epoch:', epoch)
 
@@ -78,4 +91,8 @@ for epoch in range(EPOCHS):
         p = pred.argmax(axis=0)
         print(p, label.item())
 
+    wandb.log({'train': train_metrics, 'valid': valid_metrics})
+
     print()
+
+wandb.finish()
