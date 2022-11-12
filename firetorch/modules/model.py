@@ -24,7 +24,7 @@ class Model():
             for step, batch in enumerate(progress):
                 loss, dy, dz = self._optimize(batch, activation)
                 progress.postfix = metric_log.update(loss, dy, dz)
-                if step == max_steps:
+                if step == max_steps - 1:
                     break
             if self.scheduler:
                 self.scheduler.step()
@@ -39,7 +39,7 @@ class Model():
                 for step, batch in enumerate(progress):
                     loss, dy, dz = self._validate(batch, activation)
                     progress.postfix = metric_log.update(loss, dy, dz)
-                    if step == max_steps:
+                    if step == max_steps - 1:
                         break
         return metric_log.logs
 
@@ -53,7 +53,7 @@ class Model():
                     dz = self._predict(batch, activation)
                     z = dz.detach().cpu().numpy()
                     preds.append(z)
-                    if step == max_steps:
+                    if step == max_steps - 1:
                         break
                 return np.concatenate(preds, axis=0)
 

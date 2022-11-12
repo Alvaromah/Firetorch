@@ -44,7 +44,7 @@ network = Network()
 '''
 class Accuracy(nn.Module):
     def forward(self, dz, dy):
-        return dy == dz.max(axis=1)[1] / len(dz)
+        return torch.sum(dy == dz.max(axis=1)[1]) / len(dz)
 
 '''
     Wandb
@@ -65,8 +65,10 @@ import torch.optim as optim
 from firetorch import Model
 
 EPOCHS = 2
-BATCH_SIZE = 64
+BATCH_SIZE = 16
 LEARNING_RATE = 1e-3
+SCHEDULER_LAMBDA = 0.90
+STEPS = 100
 
 train_dl = torch.utils.data.DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=0, drop_last=True)
 valid_dl = torch.utils.data.DataLoader(valid_ds, batch_size=8, shuffle=False, num_workers=0, drop_last=True)
@@ -74,24 +76,30 @@ valid_dl = torch.utils.data.DataLoader(valid_ds, batch_size=8, shuffle=False, nu
 network = Network()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(network.parameters(), lr=LEARNING_RATE)
+scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: SCHEDULER_LAMBDA ** epoch)
 
 model = Model(network, criterion, optimizer, metrics=[Accuracy()])
 
-wandb.init(project="Cifar10", entity="devprojects", config={"epochs": EPOCHS, "batch_size": BATCH_SIZE})
+wandb.init(project='Cifar10', entity='devprojects', config={'epochs': EPOCHS, 'batch_size': BATCH_SIZE, 'learning_rate': LEARNING_RATE, 'scheduler_lambda': SCHEDULER_LAMBDA})
 
 for epoch in range(EPOCHS):
     print('epoch:', epoch)
 
-    train_metrics = model.train_epoch(train_dl, max_steps=100)
-    valid_metrics = model.valid_epoch(valid_dl, max_steps=100)
+    train_metrics = model.train_epoch(train_dl, max_steps=STEPS)
+    valid_metrics = model.valid_epoch(valid_dl, max_steps=STEPS)
 
     preds = model.predict(valid_dl, max_steps=1)
     images, labels = next(iter(valid_dl))
-    for pred, label in zip(preds, labels):
+    samples = []
+    for pred, image, label in zip(preds, images, labels):
         p = pred.argmax(axis=0)
-        print(p, label.item())
+        l = label.item()
+        sample = wandb.Image(image, caption=f'{classes[p]}-{classes[l]}-{p}-{l}')
+        samples.append(sample)
+    print(*preds.argmax(axis=1), sep='\t')
+    print(*labels.cpu().numpy(), sep='\t')
 
-    wandb.log({'train': train_metrics, 'valid': valid_metrics})
+    wandb.log({'samples': samples, 'valid': valid_metrics, 'train': train_metrics })
 
     print()
 
