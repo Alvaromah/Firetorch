@@ -26,7 +26,7 @@ class Images():
         return cv2.warpAffine(img, rot_mat, img.shape[1::-1], flags=cv2.INTER_LINEAR)
 
     @staticmethod
-    def resize(img, size, inter=cv2.INTER_AREA):
+    def resize(img, size, padding=None, inter=cv2.INTER_AREA):
         width, height = size
         h, w = img.shape[:2]
         fw, fh = 1, 1
@@ -36,11 +36,15 @@ class Images():
         w = int(w * f)
         h = int(h * f)
         resized = cv2.resize(img, (w, h), interpolation=inter)
-        if len(resized.shape) == 2:
+        if len(resized.shape) != len(img.shape):
             resized = np.expand_dims(resized, axis=2)
-        arr = np.zeros((width, height, img.shape[2]), img.dtype)
-        cx, cy = (width - w) // 2, (height - h) // 2
-        arr[cy:h+cy, cx:w+cx] = resized
+        arr = resized
+        if padding:
+            pw = (w // padding) * padding
+            ph = (h // padding) * padding
+            if pw != w or ph != h:
+                cx, cy = (w - pw) // 2, (h - ph) // 2
+                arr = resized[cy:ph+cy, cx:pw+cx]
         return arr
 
     @staticmethod
