@@ -30,7 +30,7 @@ class MetricsLog():
         return self._format_logs(self.logs)
 
     def get_name(self, object):
-        if hasattr(object, '_name'): return(x._name)
+        if hasattr(object, '_name'): return(object._name)
         name = object.__class__.__name__
         name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()

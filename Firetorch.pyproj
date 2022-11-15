@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>d10dd88f-118a-4cb0-b845-2bf027d88345</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>examples\cifar10-wandb.py</StartupFile>
+    <StartupFile>examples\cifar10.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
